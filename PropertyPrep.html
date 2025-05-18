@@ -1,0 +1,129 @@
+﻿<template id="PropertyPrepHome">
+    <div class="property-prep-home">
+        <div class="header-row">
+            <h2>PropertyPrep</h2>
+        </div>
+        <div class="body-row">
+            <!-- Schedule or Main Content Goes Here -->
+            <div class="schedule-placeholder">[Schedule coming soon...]</div>
+        </div>
+    </div>
+</template>
+
+<template id="PropertyPrepTable">
+    <div class="property-prep-input-container"></div>
+    <div class="property-prep">
+        <h3>Property Prep Tasks</h3>
+        <table class="prep-table">
+            <thead>
+                <tr>
+                    <th>Person</th>
+                    <th>Location</th>
+                    <th>Task</th>
+                    <th>Start</th>
+                    <th>End</th>
+                </tr>
+            </thead>
+            <tbody id="prep-rows">
+                <!-- Rows go here -->
+            </tbody>
+        </table>
+    </div>
+</template>
+
+<template id="PropertyPrepRow">
+    <tr>
+        <td data-label="Person"><input type="text" class="person" placeholder="Person" value="{{Person}}" /></td>
+        <td data-label="Location"><input type="text" class="location" placeholder="Location" value="{{Location}}" /></td>
+        <td data-label="Task"><input type="text" class="task" placeholder="Task" value="{{Task}}" /></td>
+        <td data-label="Start"><input type="datetime-local" class="due-date" placeholder="Start" value="{{Start}}" /></td>
+        <td data-label="End"><input type="datetime-local" class="due-date" placeholder="End" value="{{End}}" /></td>
+    </tr>
+</template>
+
+<template id="PropertyPrepInput">
+    <div class="property-prep-input">
+        <label for="inputPrompt">Describe your prep tasks:</label>
+        <textarea id="inputPrompt" placeholder="e.g. Emily will clean the kitchen at Oak Street by Friday..." rows="3">
+        
+emily needs to clearn the house on oak st. by end of day today. It should take her between 1 and seven hours.
+</textarea>
+        <button id="btnRunPrompt" onclick="Apps.Components.BPL.PropertyPrep.AddScheduleItem();">Add</button>
+        <div id="inputResult" class="input-result"></div>
+    </div>
+</template>
+
+<template id="DerivationPrompt">
+
+    You are a scheduling assistant helping organize property prep tasks for short-term rentals.
+
+    Given the following description, extract structured data for each task to populate a table with 5 fields:
+
+    1. Person – the individual responsible for the task
+    2. Location – the property or address involved
+    3. Task – a clear, brief description of the task to complete
+    4. Estimated Time should start in order to accomplish the task by the specified end date – a best guess in hours (you can infer based on task type)
+    5. Estimated date and time task will end based on date and/or time mentioned – if no date or time is mentioned, use today; otherwise, leave blank or infer based on urgency
+
+    Return your response as a JSON array of objects with the following format:
+
+    [
+    {
+    "Person": "Emily",
+    "Location": "Oak Street",
+    "Task": "Restock supplies",
+    "Start": "05-17-2025 2 PM",
+    "End": "05-17-2025 4 PM"
+    },
+    ...
+    ]
+
+    Be sure to:
+    - Split out multiple tasks if the same person has more than one
+    - Infer missing details if context makes it clear (e.g., location name mentioned earlier)
+    - Keep tasks short but descriptive
+
+
+</template>
+
+<template id="SchedulerPrompt">
+
+    You are a scheduling assistant organizing property prep tasks into a working calendar.
+
+    You will receive a JSON array of tasks, each with:
+    - Person
+    - Location
+    - Task
+    - EstimatedTime (in hours)
+    - DueDate (in YYYY-MM-DD format)
+
+    Your goal:
+    1. Sort tasks by DueDate (earliest first)
+    2. Schedule each task into 8-hour weekday work blocks (Mon–Fri, 9am–5pm)
+    3. Ensure that:
+    - No person is double-booked
+    - Tasks fit entirely within a day (you can split tasks if necessary, but prefer whole blocks)
+    - Tasks finish on or before their DueDate
+
+    Start scheduling from today (assume today is {{TODAY}} unless otherwise specified).
+
+    Return the result as a list like:
+
+    [
+    {
+    "Person": "Emily",
+    "Location": "Oak Street",
+    "Task": "Restock supplies",
+    "Start": "2025-05-16T09:00",
+    "End": "2025-05-16T10:00"
+    },
+    ...
+    ]
+
+    If a task can't be scheduled before the DueDate, include it anyway and flag it:
+
+    ```diff
+    "Note": "⚠️ Scheduled after due date"
+
+
+</template>
